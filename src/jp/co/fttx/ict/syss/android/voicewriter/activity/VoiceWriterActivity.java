@@ -1,4 +1,4 @@
-package jp.co.fttx.ict.syss.android.voicewriter.Activity;
+package jp.co.fttx.ict.syss.android.voicewriter.activity;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -20,8 +21,9 @@ import java.util.ArrayList;
  *
  * @author oguri
  */
-public class VoiceWriter extends Activity {
+public class VoiceWriterActivity extends Activity {
     private static final int REQUEST_CODE = 0;
+    static final private String TAG = "VoiceWriterActivity";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -40,7 +42,7 @@ public class VoiceWriter extends Activity {
                             "Using voice is outputted.");
                     startActivityForResult(intent, REQUEST_CODE);
                 } catch (ActivityNotFoundException e) {
-                    Toast.makeText(VoiceWriter.this,
+                    Toast.makeText(VoiceWriterActivity.this,
                             "Activity could not be found。", Toast.LENGTH_LONG).show();
                 }
             }
@@ -52,11 +54,10 @@ public class VoiceWriter extends Activity {
                     Intent intent = new Intent(RecognizerIntent.ACTION_WEB_SEARCH);
                     intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                             RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-                    intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
-                            "Using voice is outputted.");
                     startActivityForResult(intent, REQUEST_CODE);
                 } catch (ActivityNotFoundException e) {
-                    Toast.makeText(VoiceWriter.this,
+                    Log.e(TAG, "Error");
+                    Toast.makeText(VoiceWriterActivity.this,
                             "Activity could not be found。", Toast.LENGTH_LONG).show();
                 }
             }

@@ -10,7 +10,7 @@ import android.speech.RecognizerIntent;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Button;
+//import android.widget.Button;
 import android.widget.Toast;
 import jp.co.fttx.ict.syss.android.voicewriter.R;
 
@@ -21,19 +21,39 @@ import java.util.ArrayList;
  *
  * @author oguri
  */
-public class VoiceWriterActivity extends Activity {
+public class VoiceWriterActivity extends Activity implements OnClickListener {
     private static final int REQUEST_CODE = 0;
-    static final private String TAG = "VoiceWriterActivity";
+    private static final String TAG = "VoiceWriterActivity";
+    private static final String ACTION_INTERCEPT = "com.adamrocker.android.simeji.ACTION_INTERCEPT";
+    private static final String REPLACE_KEY = "replace_key";
+    private Intent dst;
+    private String message;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //cf. 今回はどこから呼ばれても関係ないけど～
+        dst = getIntent();
+        String action = dst.getAction();
+        if (action != null && ACTION_INTERCEPT.equals(action)) {
+            /* called by Simeji */
+            message = dst.getStringExtra(REPLACE_KEY);
+        } else {
+            /* not called by Simeji */
+            message = dst.getStringExtra(REPLACE_KEY);
+        }
         setContentView(R.layout.main);
-        Button recognizerButton = (Button) findViewById(R.id.recognizer);
-        Button webSearchButton = (Button) findViewById(R.id.websearch);
+        findViewById(R.id.recognizer).setOnClickListener(this);
+        findViewById(R.id.websearch).setOnClickListener(this);
+    }
 
-        recognizerButton.setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
+    /*
+     * @see android.view.View.OnClickListener#onClick(android.view.View)
+     */
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.recognizer:
                 try {
                     Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
                     intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
@@ -44,12 +64,10 @@ public class VoiceWriterActivity extends Activity {
                 } catch (ActivityNotFoundException e) {
                     Toast.makeText(VoiceWriterActivity.this,
                             "Activity could not be found。", Toast.LENGTH_LONG).show();
+                    sendBack(message);
                 }
-            }
-        });
-
-        webSearchButton.setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
+                break;
+            case R.id.websearch:
                 try {
                     Intent intent = new Intent(RecognizerIntent.ACTION_WEB_SEARCH);
                     intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
@@ -59,9 +77,13 @@ public class VoiceWriterActivity extends Activity {
                     Log.e(TAG, "Error");
                     Toast.makeText(VoiceWriterActivity.this,
                             "Activity could not be found。", Toast.LENGTH_LONG).show();
+                    sendBack(message);
                 }
-            }
-        });
+                break;
+            default:
+                sendBack(message);
+                break;
+        }
     }
 
     @Override
@@ -79,12 +101,13 @@ public class VoiceWriterActivity extends Activity {
                 speakedString += " ";
 
             showDialog(this, "", speakedString);
+            sendBack(speakedString);
         }
         super.onActivityResult(requestCode, resultCode, data);
 
     }
 
-    private static void showDialog(final Activity activity, String title, String text) {
+    private void showDialog(final Activity activity, String title, String text) {
         AlertDialog.Builder ad = new AlertDialog.Builder(activity);
         ad.setTitle(title);
         ad.setMessage(text);
@@ -95,5 +118,12 @@ public class VoiceWriterActivity extends Activity {
         });
         ad.create();
         ad.show();
+    }
+
+    private void sendBack(String result) {
+        Intent data = new Intent();
+        data.putExtra(REPLACE_KEY, result);
+        setResult(RESULT_OK, data);
+        finish();
     }
 }
